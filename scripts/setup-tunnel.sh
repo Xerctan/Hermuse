@@ -56,11 +56,16 @@ sed -e "s/^name = .*/name = \"$PROJECT\"/" \
     "$PAGES_DIR/wrangler.toml.example" > "$PAGES_DIR/wrangler.toml"
 log "wrangler.toml dibuat untuk project '$PROJECT'."
 
-# --- 5. Set TUNNEL_KEY sebagai Pages secret ---
+# --- 5. Buat Pages project bila belum ada ---
+log "Memastikan Pages project '$PROJECT' ada..."
+wrangler pages project create "$PROJECT" --production-branch=main 2>/dev/null \
+  || warn "Pages project '$PROJECT' sudah ada — lanjut."
+
+# --- 6. Set TUNNEL_KEY sebagai Pages secret ---
 log "Menyetel TUNNEL_KEY sebagai Pages secret (production)..."
 printf '%s' "$TUNNEL_KEY" | wrangler pages secret put TUNNEL_KEY --project-name="$PROJECT"
 
-# --- 6. Deploy Pages Functions ---
+# --- 7. Deploy Pages Functions ---
 log "Deploy ke Pages..."
 (cd "$PAGES_DIR" && wrangler pages deploy . --project-name="$PROJECT")
 
