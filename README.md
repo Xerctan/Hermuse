@@ -1,6 +1,25 @@
 # Hermuse
 
-Replika persis stack Hermes + 9Router + Telegram gateway + Cloudflare tunnel yang berjalan di VM Muse.
+**Hermuse = Hermes + Muse.** Repo ini berisi script dan panduan untuk menjalankan Hermes Agent (AI agent dari Nous Research) + 9Router + Telegram gateway di server sendiri — replika persis dari stack yang berjalan di VM Muse.
+
+**Hasil akhirnya:** bot Telegram AI pribadi yang online 24/7 dan bisa kamu chat kapan saja, plus dashboard model yang bisa dibuka dari browser.
+
+## Mulai dari sini (pemula)
+
+Yang kamu butuhkan:
+
+- VPS Linux (Ubuntu 22.04/24.04; 2 vCPU / 4 GB RAM cukup)
+- Akun Cloudflare gratis (untuk tunnel dashboard)
+- Bot Telegram (bikin gratis via [@BotFather](https://t.me/BotFather))
+
+Belum pernah install apa-apa? Ikuti urutan ini:
+
+1. `bash scripts/install.sh` — install otomatis semuanya (dependensi, Hermes, 9Router)
+2. `hermes setup --portal` — login model; `hermes gateway setup` — sambungkan bot Telegram
+3. `bash scripts/setup-tunnel.sh <nama-pages-project> <nama-d1>` — pasang tunnel Cloudflare
+4. Ikuti [Urutan boot](#urutan-boot-yang-benar) di bawah, lalu pasang watchdog di cron
+
+Sudah paham dan mau langsung pakai script operasionalnya? Lihat tabel [Layout file](#layout-file).
 
 ## Arsitektur
 
