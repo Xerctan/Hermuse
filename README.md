@@ -8,7 +8,7 @@
 
 Yang kamu butuhkan:
 
-- VM Linux (Ubuntu 22.04/24.04; 2 vCPU / 4 GB RAM cukup)
+- VM Linux seperti VM Muse (Ubuntu 22.04/24.04; 2 vCPU / 4 GB RAM cukup)
 - Akun Cloudflare gratis (untuk tunnel dashboard)
 - Bot Telegram (bikin gratis via [@BotFather](https://t.me/BotFather))
 
