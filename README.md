@@ -8,7 +8,7 @@
 
 Yang kamu butuhkan:
 
-- VPS Linux (Ubuntu 22.04/24.04; 2 vCPU / 4 GB RAM cukup)
+- VM Linux (Ubuntu 22.04/24.04; 2 vCPU / 4 GB RAM cukup)
 - Akun Cloudflare gratis (untuk tunnel dashboard)
 - Bot Telegram (bikin gratis via [@BotFather](https://t.me/BotFather))
 
@@ -49,7 +49,7 @@ tunnel-client.mjs  (di VM)
 9Router hanya di-bind ke `127.0.0.1` (aman, tidak terekspos). Tunnel polling
 dipakai karena di jaringan VM asal WebSocket, QUIC/UDP, dan koneksi `cloudflared`
 ke edge semuanya gagal — lihat [arsip kegagalan](docs/arsip-tunnel-gagal.md).
-Di VPS/jaringan normal, `cloudflared` biasa kemungkinan justru lebih sederhana.
+Di VM/jaringan normal, `cloudflared` biasa kemungkinan justru lebih sederhana.
 
 ## Layout file
 
@@ -144,7 +144,7 @@ Di jaringan VM asal, dua pendekatan standar **gagal total**:
 - **Tailscale** — control plane gagal menembus jaringan (HTTP 400 akibat MITM).
 
 Detail + contoh config yang disanitasi: [docs/arsip-tunnel-gagal.md](docs/arsip-tunnel-gagal.md).
-Di VPS/jaringan normal keduanya kemungkinan justru cara termudah.
+Di VM/jaringan normal keduanya kemungkinan justru cara termudah.
 
 ## Keamanan — jangan dilewatkan
 
