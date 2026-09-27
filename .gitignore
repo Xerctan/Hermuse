@@ -1,0 +1,30 @@
+# Kredensial & secret — JANGAN PERNAH di-commit
+.env
+*.env
+**/.env
+.tunnel-key
+tunnel/pages-tunnel/wrangler.toml   # hasil generate (berisi D1 id asli); pakai wrangler.toml.example
+
+# Log
+*.log
+logs/
+
+# Data runtime Hermes / 9Router
+.hermes/
+9router-data/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*~
+*.swp
+.idea/
+.vscode/
+
+# Backup
+*.bak
+*.orig
