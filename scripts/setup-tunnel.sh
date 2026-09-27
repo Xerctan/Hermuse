@@ -70,18 +70,21 @@ log "Deploy ke Pages..."
 (cd "$PAGES_DIR" && wrangler pages deploy . --project-name="$PROJECT")
 
 BASE_URL="https://${PROJECT}.pages.dev"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 log "Selesai! Tunnel URL: $BASE_URL"
 
 cat << EOF
 
 ============================================================
- Langkah berikutnya di VPS:
-  1. Pastikan 9Router jalan di 127.0.0.1:20128
-  2. Jalankan tunnel client (jalan terus, mis. via systemd/watchdog):
-       TUNNEL_BASE_URL=$BASE_URL \\
-       TUNNEL_KEY_FILE=$KEY_FILE \\
-       node $TUNNEL_DIR/tunnel-client.mjs
-  3. Tes dari browser: $BASE_URL  -> harusnya dashboard 9Router
-  4. PENTING: ganti password dashboard 9Router dari default!
+ Selesai! Tunnel URL: $BASE_URL
+
+ Langkah berikutnya (dari root repo ini):
+  1. Pastikan 9Router jalan:  bash restart-9router.sh
+  2. Simpan URL tunnel: echo -n '$BASE_URL' > .tunnel-url && chmod 600 .tunnel-url
+  3. Jalankan tunnel client: bash restart-tunnel.sh
+     (atau manual: TUNNEL_BASE_URL=$BASE_URL TUNNEL_KEY_FILE=$KEY_FILE node tunnel-client.mjs)
+  4. Jalankan gateway Telegram: bash start-gateway.sh
+  5. Pasang watchdog di cron: */5 * * * * $REPO_ROOT/watchdog.sh
+  6. PENTING: ganti password dashboard 9Router dari default!
 ============================================================
 EOF

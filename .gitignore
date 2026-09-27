@@ -2,7 +2,12 @@
 .env
 *.env
 **/.env
+*.key
+*.token
 .tunnel-key
+.tunnel-url
+.dashboard-pw
+wrangler.toml
 tunnel/pages-tunnel/wrangler.toml   # hasil generate (berisi D1 id asli); pakai wrangler.toml.example
 
 # Log

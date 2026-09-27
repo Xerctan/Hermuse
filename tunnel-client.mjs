@@ -1,11 +1,11 @@
 // Tunnel client: poll Pages -> forward ke 9Router lokal -> kirim response balik.
 // Murni HTTPS polling (untuk jaringan yang memblokir WebSocket/QUIC).
 //
-// Konfigurasi via environment variable:
-//   TUNNEL_BASE_URL  URL Pages project, mis. https://9router-tunnel-kamu.pages.dev
-//   TUNNEL_KEY_FILE  path file berisi tunnel key (permission 600)
-//   TUNNEL_LOCAL     target lokal, default http://127.0.0.1:20128
-//   TUNNEL_POLL_MS   jeda antar poll saat antrean kosong, default 400
+// Konfigurasi via environment:
+//   TUNNEL_BASE_URL   wajib   — URL Pages project, mis. https://<project-kamu>.pages.dev
+//   TUNNEL_KEY_FILE   opsional — file berisi tunnel key, default ~/.tunnel-key (permission 600)
+//   TUNNEL_LOCAL      opsional — target lokal, default http://127.0.0.1:20128
+//   TUNNEL_POLL_MS    opsional — jeda antar poll saat antrean kosong, default 400
 import { readFileSync } from "node:fs";
 
 const BASE = (process.env.TUNNEL_BASE_URL || "").replace(/\/$/, "");
@@ -15,7 +15,8 @@ const POLL_MS = parseInt(process.env.TUNNEL_POLL_MS || "400", 10);
 
 if (!BASE) {
   console.error("TUNNEL_BASE_URL belum di-set. Contoh:");
-  console.error("  TUNNEL_BASE_URL=https://9router-tunnel-kamu.pages.dev node tunnel-client.mjs");
+  console.error("  TUNNEL_BASE_URL=https://<project-kamu>.pages.dev node tunnel-client.mjs");
+  console.error("  (atau simpan URL di file .tunnel-url bila dijalankan via start-pages-tunnel.sh)");
   process.exit(1);
 }
 
@@ -23,7 +24,7 @@ let KEY;
 try {
   KEY = readFileSync(KEY_FILE, "utf8").trim();
 } catch {
-  console.error(`Tidak bisa baca key file: ${KEY_FILE}`);
+  console.error(`Tidak bisa baca key file: ${KEY_FILE} (buat dengan: openssl rand -hex 32 > ${KEY_FILE} && chmod 600 ${KEY_FILE})`);
   process.exit(1);
 }
 if (!KEY) {
