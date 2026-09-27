@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install otomatis: Hermes Agent + Node.js + 9Router di VPS Linux (Debian/Ubuntu).
+# Install otomatis: Hermes Agent + Node.js + 9Router di VM Linux (Debian/Ubuntu).
 # Dijalankan sebagai user biasa (bukan root). Tidak butuh input interaktif
 # kecuali saat login provider nanti (langkah manual setelah script selesai).
 #

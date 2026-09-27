@@ -2,7 +2,7 @@
 
 Di jaringan VM asal (sandbox dengan egress yang di-intercept), dua cara standar
 membuat 9Router bisa diakses dari internet **gagal total**. Keduanya didokumentasikan
-di sini sebagai arsip — dan sebagai pengingat bahwa di VPS/jaringan normal,
+di sini sebagai arsip — dan sebagai pengingat bahwa di VM/jaringan normal,
 keduanya kemungkinan besar justru cara yang paling sederhana.
 
 Solusi yang akhirnya dipakai: tunnel polling HTTPS murni (Pages Functions + D1),
