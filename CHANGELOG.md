@@ -2,6 +2,11 @@
 
 Semua perubahan penting di repo ini dicatat di sini, format ala Keep a Changelog.
 
+## Kandidat update berikutnya
+- Script autopanen: panen endpoint AI gratisan (OpenAI-compatible) secara berkala dan daftarkan otomatis sebagai provider 9Router. Arsitektur routing: **hasil panen sebagai jalur utama, Nous sebagai fallback** (kebalik dari asumsi awal).
+- `hermuse-doctor`: script cek kesehatan all-in-one.
+- Installer satu baris.
+
 ## [Unreleased]
 
 ### Ditambahkan
