@@ -5,7 +5,10 @@
 //   TUNNEL_BASE_URL   wajib   — URL Pages project, mis. https://<project-kamu>.pages.dev
 //   TUNNEL_KEY_FILE   opsional — file berisi tunnel key, default ~/.tunnel-key (permission 600)
 //   TUNNEL_LOCAL      opsional — target lokal, default http://127.0.0.1:20128
-//   TUNNEL_POLL_MS    opsional — jeda antar poll saat antrean kosong, default 400
+//   TUNNEL_POLL_MS    opsional — jeda tambahan antar long-poll saat antrean kosong,
+//                                default 400. Sejak server pakai long-poll (~20 detik
+//                                menahan koneksi), nilai ini BUKAN interval polling
+//                                utama — hanya jeda singkat sebelum poll berikutnya.
 import { readFileSync } from "node:fs";
 
 const BASE = (process.env.TUNNEL_BASE_URL || "").replace(/\/$/, "");

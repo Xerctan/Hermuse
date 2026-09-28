@@ -42,9 +42,16 @@ else
 fi
 
 # --- 5. 9Router (paket npm) ---
+# Install ke $HOME/.npm-global agar konsisten dengan PATH di script lain
+# (start-9router.sh, start-pages-tunnel.sh) dan tetap aman tanpa akses root.
 if ! command -v 9router >/dev/null 2>&1; then
   log "Menginstall 9Router..."
-  npm install -g 9router
+  mkdir -p "$HOME/.npm-global"
+  npm install -g --prefix "$HOME/.npm-global" 9router
+  export PATH="$HOME/.npm-global/bin:$PATH"
+  # pastikan persisten untuk shell berikutnya
+  grep -q '.npm-global/bin' ~/.bashrc 2>/dev/null || \
+    echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.bashrc
 else
   log "9Router sudah ada: $(9router --version 2>/dev/null || echo '?')"
 fi
@@ -67,7 +74,7 @@ cat << 'EOF'
   2. Buat bot Telegram via @BotFather, catat tokennya.
   3. Dapatkan numeric ID via @userinfobot.
   4. hermes gateway setup       # isi token bot + allowlist ID
-  5. 9router -p 20128 -H 127.0.0.1 -n --skip-update
+  5. 9router -p 20128 -H 127.0.0.1 -n -l --skip-update
   6. hermes gateway run         # verifikasi "Connected to Telegram"
  Lihat README.md untuk detail tiap langkah.
 ============================================================

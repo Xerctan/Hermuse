@@ -5,6 +5,7 @@
 *.key
 *.token
 .tunnel-key
+.tunnel-key*
 .tunnel-url
 .dashboard-pw
 wrangler.toml

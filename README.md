@@ -38,13 +38,20 @@ Browser (internet)
    │ antrean request/response
    ▼
 D1  (tabel tunnel_requests / tunnel_responses)
-   ▲ polling HTTPS tiap ~400ms
+   ▲ long-poll HTTPS ~20 detik
    │
 tunnel-client.mjs  (di VM)
    │ forward
    ▼
 9Router di 127.0.0.1:20128
 ```
+
+**Kenapa long-poll?** Endpoint `/__tunnel/poll` menahan koneksi sampai ~20 detik
+saat antrean kosong, baru merespons (atau langsung merespons kalau ada request
+masuk). Tanpa ini, polling tiap 400ms–2.5 detik bisa menghabiskan jatah
+**100 ribu request/hari Cloudflare Workers free tier** dalam hitungan jam;
+dengan long-poll, pemakaian idle turun ke ~4.300 request/hari. Lihat
+`tunnel/pages-tunnel/functions/__tunnel/poll.js` untuk implementasinya.
 
 9Router hanya di-bind ke `127.0.0.1` (aman, tidak terekspos). Tunnel polling
 dipakai karena di jaringan VM asal WebSocket, QUIC/UDP, dan koneksi `cloudflared`
@@ -87,7 +94,7 @@ bash start-gateway.sh
 Verifikasi:
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:20128/dashboard  # harus 200
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:20128/dashboard  # harus 200/307 (307 = redirect ke login, normal)
 pgrep -f "tunnel-client.mjs"     # harus ada PID
 ps aux | grep "[g]ateway.*run"   # harus ada proses gateway
 ```
@@ -112,6 +119,52 @@ hanya mencatat saat benar-benar me-restart.
 > Untuk cron: simpan URL tunnel di file `.tunnel-url` (chmod 600) di folder ini,
 > karena cron tidak mewarisi environment variable interaktif:
 > `echo -n 'https://<project-kamu>.pages.dev' > .tunnel-url && chmod 600 .tunnel-url`
+
+## Auto-start setelah reboot
+
+`scripts/start-all.sh` menyalakan semua komponen Hermuse yang mati (9Router,
+tunnel client, Telegram gateway) — idempoten, yang sudah jalan tidak disentuh:
+
+```bash
+bash /path/ke/Hermuse/scripts/start-all.sh
+```
+
+Agar otomatis jalan setiap VPS reboot, contoh untuk VPS Linux normal:
+
+**Opsi 1 — cron `@reboot`:**
+
+```bash
+crontab -e
+# tambahkan:
+@reboot sleep 30 && /path/ke/Hermuse/scripts/start-all.sh >> /path/ke/Hermuse/boot.log 2>&1
+```
+
+**Opsi 2 — systemd user unit** (`~/.config/systemd/user/hermuse.service`):
+
+```ini
+[Unit]
+Description=Hermuse stack (9Router + tunnel + Telegram gateway)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/path/ke/Hermuse/scripts/start-all.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target
+```
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now hermuse.service
+# agar jalan tanpa login: sudo loginctl enable-linger $USER
+```
+
+(Kedua contoh di atas untuk VPS/jaringan normal dan belum diuji di semua
+distro — sesuaikan dengan sistem masing-masing. Watchdog cron tiap 5 menit
+tetap disarankan sebagai jaring pengaman.)
 
 ## Install dari nol
 

@@ -15,7 +15,9 @@ if ! curl -s -m 8 -o /dev/null http://127.0.0.1:20128/dashboard; then
 fi
 
 # 2. Tunnel client (proses node tunnel-client.mjs)
-if ! pgrep -f "tunnel-client.mjs" > /dev/null 2>&1; then
+# Pola "[.]" = exact match, agar tidak ikut cocok dengan tunnel client lain
+# (mis. tunnel-client-hermesum.mjs) di setup multi-tunnel.
+if ! pgrep -f "tunnel-client[.]mjs" > /dev/null 2>&1; then
   bash "$D/restart-tunnel.sh" > /dev/null 2>&1
   RESTARTED="$RESTARTED tunnel"
 fi
