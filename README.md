@@ -69,6 +69,7 @@ Di VM/jaringan normal, `cloudflared` biasa kemungkinan justru lebih sederhana.
 | `restart-9router.sh` | Kill proses 9Router lama (pola aman, anti self-kill) + jalankan supervisor detached. |
 | `restart-tunnel.sh` | Kill tunnel client lama + jalankan supervisor detached. |
 | `watchdog.sh` | Cek 9Router, tunnel client, gateway; restart yang mati. Untuk cron. |
+| `gateway-watch.sh` | Watchdog anti-stall gateway Telegram: deteksi macet diam-diam via heartbeat event-loop + aktivitas adapter, bukan cuma cek proses hidup. Untuk cron (tiap 5 menit). |
 | `tunnel-client.mjs` | Client polling: ambil antrean dari Pages, forward ke 9Router lokal, kirim respons balik. |
 | `tunnel/` | Skema D1 (`schema.sql`) + Pages Functions + `wrangler.toml.example`. |
 | `scripts/install.sh` | Install dari nol: dependensi, Node.js LTS, Hermes, 9Router. |
@@ -95,7 +96,7 @@ Verifikasi:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:20128/dashboard  # harus 200/307 (307 = redirect ke login, normal)
-pgrep -f "tunnel-client.mjs"     # harus ada PID
+pgrep -f "tunnel-client[.]mjs"   # harus ada PID
 ps aux | grep "[g]ateway.*run"   # harus ada proses gateway
 ```
 
@@ -112,13 +113,36 @@ crontab -e
 ```
 
 Watchdog mengecek tiga hal — 9Router (`curl` ke `/dashboard`), tunnel client
-(`pgrep tunnel-client.mjs`), gateway Telegram (`gateway.*run`) — dan me-restart
+(`pgrep tunnel-client[.]mjs`), gateway Telegram (`gateway.*run`) — dan me-restart
 yang mati via script `restart-*`. Ia diam (tidak menulis log) kalau semua sehat;
 hanya mencatat saat benar-benar me-restart.
 
 > Untuk cron: simpan URL tunnel di file `.tunnel-url` (chmod 600) di folder ini,
 > karena cron tidak mewarisi environment variable interaktif:
 > `echo -n 'https://<project-kamu>.pages.dev' > .tunnel-url && chmod 600 .tunnel-url`
+
+## Watchdog anti-stall gateway (opsional tapi disarankan)
+
+`watchdog.sh` di atas hanya mengecek "proses ada/tidak". Kalau polling
+Telegram macet padahal proses masih hidup, ia lolos dari deteksi.
+`gateway-watch.sh` menutup lubang itu dengan tiga lapis cek:
+
+1. PID gateway tidak ada → restart langsung.
+2. Heartbeat event-loop (`$HERMES_HOME/state/gateway.heartbeat`, ditulis
+   otomatis oleh gateway) basi >120 detik → restart langsung.
+3. Heartbeat segar tapi 0 aktivitas adapter Telegram di `gateway.log`
+   selama 15 menit → tandai suspect, restart kalau terkonfirmasi
+   2 run beruntun.
+
+Aturan keras: hanya kill kalau tepat 1 kandidat PID (tidak ambigu).
+Tidak menyentuh 9Router sama sekali. Untuk uji coba tanpa aksi nyata:
+`DRY_RUN=1 bash gateway-watch.sh`.
+
+```bash
+crontab -e
+# tambahkan (selang-seling dengan watchdog.sh juga boleh):
+*/5 * * * * /path/ke/Hermuse/gateway-watch.sh
+```
 
 ## Auto-start setelah reboot
 
