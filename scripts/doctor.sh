@@ -46,8 +46,14 @@ emit() { # $1 = ok|FAIL|warn|SKIP, rest = message
 #   normal install: hermes gateway run                          (adjacent)
 #   provisioned:    python3 -I -c "...sys.argv = ['-c', 'gateway', 'run']..."
 #                   (argv elements comma-separated inside the -c string)
-# The [g] trick keeps the pattern from matching its own pgrep invocation.
-gateway_pids() { pgrep -f "[g]ateway['\", ]*run" || true; }
+# The '+' requires at least one separator (space, quote, or comma) — a bare
+# "gatewayrun" must NOT match. The [g] trick keeps the pattern from matching
+# its own pgrep invocation.
+# Regression guard: scripts/doctor.test.sh pins all three shapes plus
+# negative cases (gateway-watch.sh, start-gateway.sh, bare gatewayrun).
+# Do not "simplify" this back to `gateway run` — the provisioned shape was
+# missed by the adjacent-only variant on a live machine (spec rev 7).
+gateway_pids() { pgrep -f "[g]ateway['\", ]+run" || true; }
 
 http_code() { # $1 = url; prints the HTTP status, "000" when no response came back
   curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$1" || true
