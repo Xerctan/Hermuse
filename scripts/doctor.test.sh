@@ -68,6 +68,17 @@ else
 fi
 sleep 0.5
 
+# --- tunnel client: adopt the live one if any exists, else fake it ---
+# (assertion 5 only needs >=1 pgrep match; never touch live infra.
+#  Without this, the suite passes on the dev box only because the live
+#  tunnel-client.mjs happens to be running — GitHub runners have none,
+#  which is exactly how CI went red on 2026-10-01.)
+if [ -z "$(pgrep -f "tunnel-client[.]mjs" || true)" ]; then
+  # NB: argv[0] is only a LABEL via exec -a; the process exec'd is `sleep`.
+  bash -c 'exec -a "node /fake/tunnel-client.mjs --test" sleep 600' &
+fi
+sleep 0.5
+
 # --- fixture HERMES_HOME with a fresh heartbeat for the gateway pid ---
 mkdir -p "$TMP/hermes/state"
 fresh_iso() { node -e 'console.log(new Date().toISOString())'; }
