@@ -33,9 +33,13 @@ Yang kamu butuhkan:
 **Belum pernah install apa-apa?** Ikuti urutan ini:
 
 1. `bash scripts/install.sh` — install otomatis semuanya (dependensi, Hermes, 9Router)
+Verify: `hermes --version` → mencetak baris versi; `9router --version` → mencetak versi
 2. `hermes setup --portal` — login model; `hermes gateway setup` — sambungkan bot Telegram
+Verify: kirim `/start` ke bot kamu → bot membalas (ID Telegram numerik kamu harus ada di allowlist gateway)
 3. `bash scripts/setup-tunnel.sh <nama-pages-project> <nama-d1>` — pasang tunnel Cloudflare
+Verify: `pgrep -f "tunnel-client[.]mjs"` → mencetak PID
 4. Ikuti [urutan boot yang benar](#urutan-boot-yang-benar) di bawah, lalu pasang watchdog di cron
+Verify: `bash scripts/doctor.sh` → ringkasan menunjukkan `0 FAIL`
 
 Sudah paham dan mau langsung pakai script operasionalnya? Lihat tabel
 [layout file](#layout-file).
@@ -100,25 +104,17 @@ dipakai karena di jaringan VM asal WebSocket, QUIC/UDP, dan koneksi
 
 Jalankan berurutan (cukup sekali; supervisor + watchdog yang menjaga sisanya):
 
-```bash
-# 1. 9Router dulu (supervisor detached, auto-restart)
-bash restart-9router.sh
+1. 9Router dulu (supervisor detached, auto-restart):
+   `bash restart-9router.sh`
+Verify: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:20128/dashboard` → mencetak `200` atau `307` (307 = redirect ke login, normal)
 
-# 2. Tunnel client (butuh TUNNEL_BASE_URL atau file .tunnel-url)
-export TUNNEL_BASE_URL='https://<project-kamu>.pages.dev'
-bash restart-tunnel.sh
+2. Tunnel client (butuh `TUNNEL_BASE_URL` atau file `.tunnel-url`):
+   `export TUNNEL_BASE_URL='https://<project-kamu>.pages.dev'` lalu `bash restart-tunnel.sh`
+Verify: `pgrep -f "tunnel-client[.]mjs"` → mencetak PID
 
-# 3. Telegram gateway (detached)
-bash start-gateway.sh
-```
-
-Verifikasi:
-
-```bash
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:20128/dashboard  # harus 200/307 (307 = redirect ke login, normal)
-pgrep -f "tunnel-client[.]mjs"   # harus ada PID
-ps aux | grep "[g]ateway.*run"   # harus ada proses gateway
-```
+3. Telegram gateway (detached):
+   `bash start-gateway.sh`
+Verify: `pgrep -f "[g]ateway['\", ]*run"` → mencetak tepat satu PID
 
 Lalu buka `https://<project-kamu>.pages.dev` di browser — dashboard 9Router
 harus muncul. Kalau dapat `504 tunnel timeout (client offline?)`, berarti

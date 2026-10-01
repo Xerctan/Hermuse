@@ -33,9 +33,13 @@ What you need:
 **New to all of this?** Follow these in order:
 
 1. `bash scripts/install.sh` — installs everything (dependencies, Hermes, 9Router)
+Verify: `hermes --version` → prints a version line; `9router --version` → prints a version
 2. `hermes setup --portal` — model login; `hermes gateway setup` — connect your Telegram bot
+Verify: send `/start` to your bot → it replies (your numeric Telegram ID must be in the gateway allowlist)
 3. `bash scripts/setup-tunnel.sh <pages-project-name> <d1-name>` — install the Cloudflare tunnel
+Verify: `pgrep -f "tunnel-client[.]mjs"` → prints a PID
 4. Follow the [correct boot order](#correct-boot-order) below, then put the watchdog on cron
+Verify: `bash scripts/doctor.sh` → summary shows `0 FAIL`
 
 Already comfortable and want the operational scripts directly? See the
 [file layout](#file-layout) table.
@@ -100,25 +104,17 @@ connections to the edge all failed — see the
 
 Run in order (once is enough; supervisors + watchdog handle the rest):
 
-```bash
-# 1. 9Router first (detached supervisor, auto-restart)
-bash restart-9router.sh
+1. 9Router first (detached supervisor, auto-restart):
+   `bash restart-9router.sh`
+Verify: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:20128/dashboard` → prints `200` or `307` (307 = redirect to login, normal)
 
-# 2. Tunnel client (needs TUNNEL_BASE_URL or a .tunnel-url file)
-export TUNNEL_BASE_URL='https://<your-project>.pages.dev'
-bash restart-tunnel.sh
+2. Tunnel client (needs `TUNNEL_BASE_URL` or a `.tunnel-url` file):
+   `export TUNNEL_BASE_URL='https://<your-project>.pages.dev'` then `bash restart-tunnel.sh`
+Verify: `pgrep -f "tunnel-client[.]mjs"` → prints a PID
 
-# 3. Telegram gateway (detached)
-bash start-gateway.sh
-```
-
-Verify:
-
-```bash
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:20128/dashboard  # expect 200/307 (307 = redirect to login, normal)
-pgrep -f "tunnel-client[.]mjs"   # should print a PID
-ps aux | grep "[g]ateway.*run"   # gateway process should exist
-```
+3. Telegram gateway (detached):
+   `bash start-gateway.sh`
+Verify: `pgrep -f "[g]ateway['\", ]*run"` → prints exactly one PID
 
 Then open `https://<your-project>.pages.dev` in a browser — the 9Router
 dashboard should appear. If you get `504 tunnel timeout (client offline?)`,
