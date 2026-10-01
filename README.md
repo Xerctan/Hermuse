@@ -114,7 +114,7 @@ Verify: `pgrep -f "tunnel-client[.]mjs"` → prints a PID
 
 3. Telegram gateway (detached):
    `bash start-gateway.sh`
-Verify: `pgrep -f "[g]ateway['\", ]*run"` → prints exactly one PID
+Verify: `pgrep -f "[g]ateway['\", ]+run"` → prints exactly one PID
 
 Then open `https://<your-project>.pages.dev` in a browser — the 9Router
 dashboard should appear. If you get `504 tunnel timeout (client offline?)`,
