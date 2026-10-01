@@ -3,7 +3,7 @@
 #
 # Hermetic: every dependency (fake gateway, fake 9Router, fake tunnel URL,
 # fake PATH shims, fixture files/heartbeats) is built in a temp dir.
-# Needs only bash, node, python3. No network beyond 127.0.0.1.
+# Needs only bash and node. No network beyond 127.0.0.1.
 # Exit 0 iff all tests pass.
 set -euo pipefail
 
@@ -36,15 +36,11 @@ printf '#!/bin/bash\necho "9router-test 99.0"\n' > "$TMP/fakebin/9router"
 chmod +x "$TMP/fakebin"/*
 export PATH="$TMP/fakebin:$PATH"
 
-# --- fake HTTP servers: 200-everything (fake 9Router / fake tunnel URL) ---
+# --- fake HTTP servers: fixed-status responder (fake 9Router / fake tunnel URL) ---
 serve() { # $1 = port, $2 = status code
-  python3 -c "
-from http.server import BaseHTTPRequestHandler, HTTPServer
-class H(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response($2); self.end_headers(); self.wfile.write(b'x')
-    def log_message(self, *a): pass
-HTTPServer(('127.0.0.1', $1), H).serve_forever()
+  node -e "
+const http = require('http');
+http.createServer((req, res) => { res.writeHead($2); res.end('x'); }).listen($1, '127.0.0.1');
 " >/dev/null 2>&1 &
 }
 PORT_R=18991  # fake 9Router dashboard
@@ -59,7 +55,9 @@ sleep 1
 # (never touch live infra; the test only READS the live gateway's pid)
 EXISTING_GW="$(pgrep -f "$PATTERN" || true)"
 if [ -z "$EXISTING_GW" ]; then
-  # no live gateway: spawn a fake with the PROVISIONED argv shape (comma-separated)
+  # no live gateway: spawn a fake with the PROVISIONED argv shape (comma-separated).
+  # NB: "python3 -I -c ..." here is only an argv[0] LABEL via exec -a; the
+  # process actually exec'd is `sleep`. No python3 is executed or required.
   bash -c "exec -a \"python3 -I -c sys.argv = ['-c', 'gateway', 'run']\" sleep 600" &
   GW_PID=$!
 elif [ "$(printf '%s\n' "$EXISTING_GW" | wc -l)" -eq 1 ]; then
