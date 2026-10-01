@@ -16,6 +16,21 @@ if ! command -v apt-get >/dev/null 2>&1; then
   exit 1
 fi
 
+# --- 1b. sudo harus non-interaktif (sesuai klaim script ini) ---
+# Tanpa ini, `sudo apt-get` akan menggantung menunggu password di mesin
+# fresh tanpa passwordless sudo — gagal cepat dengan pesan jelas.
+if [ "$(id -u)" -ne 0 ]; then
+  if ! command -v sudo >/dev/null 2>&1; then
+    warn "Butuh perintah 'sudo' — atau jalankan script ini sebagai root."
+    exit 1
+  fi
+  if ! sudo -n true 2>/dev/null; then
+    warn "sudo meminta password, padahal script ini dirancang non-interaktif."
+    warn "Aktifkan passwordless sudo untuk user ini, atau jalankan sebagai root."
+    exit 1
+  fi
+fi
+
 # --- 2. Dependensi dasar ---
 log "Menginstall dependensi dasar (git, curl, tar)..."
 sudo apt-get update -y
