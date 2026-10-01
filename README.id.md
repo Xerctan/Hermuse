@@ -8,6 +8,7 @@
 [![Forks](https://img.shields.io/github/forks/imkofty/Hermuse?style=for-the-badge&logo=github&color=4DD0E1)](https://github.com/imkofty/Hermuse/network/members)
 [![Issues](https://img.shields.io/github/issues/imkofty/Hermuse?style=for-the-badge&logo=github&color=FFB454)](https://github.com/imkofty/Hermuse/issues)
 [![License: MIT](https://img.shields.io/github/license/imkofty/Hermuse?style=for-the-badge&color=3FB950)](LICENSE)
+[![doctor](https://github.com/imkofty/Hermuse/actions/workflows/doctor.yml/badge.svg)](https://github.com/imkofty/Hermuse/actions/workflows/doctor.yml)
 
 [![Linux](https://img.shields.io/badge/OS-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://ubuntu.com/)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -213,6 +214,7 @@ Belum punya apa-apa? Mulai dari sini:
 ```bash
 bash scripts/install.sh        # dependensi + Node.js + Hermes + 9Router + hermes doctor
 ```
+(butuh `sudo` tanpa password, atau jalankan sebagai root — script-nya langsung berhenti kalau tidak)
 
 Lalu setup provider model & Telegram gateway (wizard):
 

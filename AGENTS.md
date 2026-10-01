@@ -20,7 +20,8 @@ Run these in order. After each step, verify it before moving on (the
 `Verify:` blocks in `README.md` show the exact check).
 
 1. `bash scripts/install.sh` — non-interactive, idempotent. Installs node
-   deps, Hermes CLI, and 9Router.
+   deps, Hermes CLI, and 9Router. Needs passwordless `sudo` or root
+   (the script fails fast with a clear message otherwise).
 2. Model login: `hermes setup --portal` — **this IS the model-login step**
    (OAuth via the Nous portal in the browser). To use a different provider
    instead, run `hermes model` and pick one.
