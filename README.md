@@ -1,169 +1,189 @@
-# Hermuse
+# Hermuse — self-hosted AI agent stack (Hermes + 9Router + Telegram)
 
-**Hermuse = Hermes + Muse.** Repo ini berisi script dan panduan untuk menjalankan Hermes Agent (AI agent dari Nous Research) + 9Router + Telegram gateway di server sendiri — replika persis dari stack yang berjalan di VM Muse.
+![Hermuse banner](assets/banner.png)
 
-**Hasil akhirnya:** bot Telegram AI pribadi yang online 24/7 dan bisa kamu chat kapan saja, plus dashboard model yang bisa dibuka dari browser.
+🇬🇧 **English** · [🇮🇩 Indonesia](README.id.md)
 
-## Mulai dari sini (pemula)
+[![Stars](https://img.shields.io/github/stars/imkofty/Hermuse?style=for-the-badge&logo=github&color=20808D)](https://github.com/imkofty/Hermuse/stargazers)
+[![Forks](https://img.shields.io/github/forks/imkofty/Hermuse?style=for-the-badge&logo=github&color=4DD0E1)](https://github.com/imkofty/Hermuse/network/members)
+[![Issues](https://img.shields.io/github/issues/imkofty/Hermuse?style=for-the-badge&logo=github&color=FFB454)](https://github.com/imkofty/Hermuse/issues)
+[![License: MIT](https://img.shields.io/github/license/imkofty/Hermuse?style=for-the-badge&color=3FB950)](LICENSE)
 
-Yang kamu butuhkan:
+[![Linux](https://img.shields.io/badge/OS-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://ubuntu.com/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Telegram](https://img.shields.io/badge/Telegram-Gateway-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Tunnel-F68204?style=for-the-badge&logo=cloudflare&logoColor=white)](https://www.cloudflare.com/)
+[![Bash](https://img.shields.io/badge/Bash-Scripts-4EAA25?style=for-the-badge&logo=gnu-bash&logoColor=white)]()
 
-- VM Linux seperti VM Muse (Ubuntu 22.04/24.04; 2 vCPU / 4 GB RAM cukup)
-- Akun Cloudflare gratis (untuk tunnel dashboard)
-- Bot Telegram (bikin gratis via [@BotFather](https://t.me/BotFather))
+**Hermuse = Hermes + Muse.** Scripts and guides to run Hermes Agent (the AI
+agent from Nous Research) + 9Router + a Telegram gateway on your own server —
+an exact replica of the stack running on Muse's VM.
 
-Belum pernah install apa-apa? Ikuti urutan ini:
+**End result:** your personal Telegram AI bot, online 24/7 and ready to chat
+anytime, plus a model dashboard you can open from any browser.
 
-1. `bash scripts/install.sh` — install otomatis semuanya (dependensi, Hermes, 9Router)
-2. `hermes setup --portal` — login model; `hermes gateway setup` — sambungkan bot Telegram
-3. `bash scripts/setup-tunnel.sh <nama-pages-project> <nama-d1>` — pasang tunnel Cloudflare
-4. Ikuti [Urutan boot](#urutan-boot-yang-benar) di bawah, lalu pasang watchdog di cron
+## Quick start
 
-Sudah paham dan mau langsung pakai script operasionalnya? Lihat tabel [Layout file](#layout-file).
+What you need:
 
-## Arsitektur
+- A Linux VM like Muse's (Ubuntu 22.04/24.04; 2 vCPU / 4 GB RAM is enough)
+- A free Cloudflare account (for the dashboard tunnel)
+- A Telegram bot (free via [@BotFather](https://t.me/BotFather))
+
+**New to all of this?** Follow these in order:
+
+1. `bash scripts/install.sh` — installs everything (dependencies, Hermes, 9Router)
+2. `hermes setup --portal` — model login; `hermes gateway setup` — connect your Telegram bot
+3. `bash scripts/setup-tunnel.sh <pages-project-name> <d1-name>` — install the Cloudflare tunnel
+4. Follow the [correct boot order](#correct-boot-order) below, then put the watchdog on cron
+
+Already comfortable and want the operational scripts directly? See the
+[file layout](#file-layout) table.
+
+## How it works
 
 ```
-Telegram (kamu)
+Telegram (you)
    │ polling
    ▼
 Hermes gateway  ──▶  model:
-   (run-hermes.sh)        ├─▶ Nous (langsung, via OAuth / API key)
+   (run-hermes.sh)        ├─▶ Nous (direct, via OAuth / API key)
                           └─▶ 9Router  (127.0.0.1:20128, OpenAI-compatible)
 
 Browser (internet)
-   │ HTTPS biasa
+   │ plain HTTPS
    ▼
-<project-kamu>.pages.dev  (Cloudflare Pages Functions)
-   │ antrean request/response
+<your-project>.pages.dev  (Cloudflare Pages Functions)
+   │ request/response queue
    ▼
-D1  (tabel tunnel_requests / tunnel_responses)
-   ▲ long-poll HTTPS ~20 detik
+D1  (tunnel_requests / tunnel_responses tables)
+   ▲ ~20s HTTPS long-poll
    │
-tunnel-client.mjs  (di VM)
+tunnel-client.mjs  (on your VM)
    │ forward
    ▼
-9Router di 127.0.0.1:20128
+9Router at 127.0.0.1:20128
 ```
 
-**Kenapa long-poll?** Endpoint `/__tunnel/poll` menahan koneksi sampai ~20 detik
-saat antrean kosong, baru merespons (atau langsung merespons kalau ada request
-masuk). Tanpa ini, polling tiap 400ms–2.5 detik bisa menghabiskan jatah
-**100 ribu request/hari Cloudflare Workers free tier** dalam hitungan jam;
-dengan long-poll, pemakaian idle turun ke ~4.300 request/hari. Lihat
-`tunnel/pages-tunnel/functions/__tunnel/poll.js` untuk implementasinya.
+**Why long-poll?** The `/__tunnel/poll` endpoint holds the connection for
+~20 seconds when the queue is empty before responding (or responds immediately
+when a request arrives). Without this, polling every 400ms–2.5s would burn
+through Cloudflare Workers' **100k requests/day free-tier quota** in hours;
+with long-poll, idle usage drops to ~4,300 requests/day. See
+`tunnel/pages-tunnel/functions/__tunnel/poll.js` for the implementation.
 
-9Router hanya di-bind ke `127.0.0.1` (aman, tidak terekspos). Tunnel polling
-dipakai karena di jaringan VM asal WebSocket, QUIC/UDP, dan koneksi `cloudflared`
-ke edge semuanya gagal — lihat [arsip kegagalan](docs/arsip-tunnel-gagal.md).
-Di VM/jaringan normal, `cloudflared` biasa kemungkinan justru lebih sederhana.
+9Router binds only to `127.0.0.1` (safe, never exposed). The polling tunnel is
+used because on the original VM network, WebSocket, QUIC/UDP, and `cloudflared`
+connections to the edge all failed — see the
+[failure archive](docs/arsip-tunnel-gagal.md). On a normal VM/network, plain
+`cloudflared` is probably simpler.
 
-## Layout file
+## File layout
 
-| File | Peran |
+| File | Role |
 |---|---|
-| `run-hermes.sh` | Menjalankan Hermes CLI via venv provisioned (set `HERMES_HOME`, `no_proxy` minimal). Sesuaikan `HERMES_VENV` / `HERMES_SRC` di atas file. |
-| `start-gateway.sh` | Menjalankan Telegram gateway detached (`setsid`+`nohup`). |
-| `start-9router.sh` | Supervisor 9Router: bind `127.0.0.1:20128`, auto-restart saat crash. Password dashboard dibaca dari file `.dashboard-pw` (600). |
-| `start-pages-tunnel.sh` | Supervisor tunnel client (`tunnel-client.mjs`), auto-restart. |
-| `restart-9router.sh` | Kill proses 9Router lama (pola aman, anti self-kill) + jalankan supervisor detached. |
-| `restart-tunnel.sh` | Kill tunnel client lama + jalankan supervisor detached. |
-| `watchdog.sh` | Cek 9Router, tunnel client, gateway; restart yang mati. Untuk cron. |
-| `gateway-watch.sh` | Watchdog anti-stall gateway Telegram: deteksi macet diam-diam via heartbeat event-loop + aktivitas adapter, bukan cuma cek proses hidup. Untuk cron (tiap 5 menit). |
-| `tunnel-client.mjs` | Client polling: ambil antrean dari Pages, forward ke 9Router lokal, kirim respons balik. |
-| `tunnel/` | Skema D1 (`schema.sql`) + Pages Functions + `wrangler.toml.example`. |
-| `scripts/install.sh` | Install dari nol: dependensi, Node.js LTS, Hermes, 9Router. |
-| `scripts/setup-tunnel.sh` | Setup tunnel: generate key → buat D1 → deploy Pages → set secret. |
-| `docs/arsip-tunnel-gagal.md` | Arsip: `cloudflared` & Tailscale yang gagal di jaringan VM asal. |
+| `run-hermes.sh` | Runs the Hermes CLI via a provisioned venv (sets `HERMES_HOME`, minimal `no_proxy`). Adjust `HERMES_VENV` / `HERMES_SRC` at the top of the file. |
+| `start-gateway.sh` | Runs the Telegram gateway detached (`setsid`+`nohup`). |
+| `start-9router.sh` | 9Router supervisor: binds `127.0.0.1:20128`, auto-restarts on crash. Dashboard password is read from `.dashboard-pw` (600). |
+| `start-pages-tunnel.sh` | Tunnel client supervisor (`tunnel-client.mjs`), auto-restart. |
+| `restart-9router.sh` | Kills the old 9Router process (safe pattern, anti self-kill) + starts the supervisor detached. |
+| `restart-tunnel.sh` | Kills the old tunnel client + starts the supervisor detached. |
+| `watchdog.sh` | Checks 9Router, tunnel client, gateway; restarts whatever died. For cron. |
+| `gateway-watch.sh` | Anti-stall watchdog for the Telegram gateway: detects silent stalls via event-loop heartbeat + adapter activity, not just "process alive". For cron (every 5 minutes). |
+| `tunnel-client.mjs` | Polling client: pulls the queue from Pages, forwards to local 9Router, sends responses back. |
+| `tunnel/` | D1 schema (`schema.sql`) + Pages Functions + `wrangler.toml.example`. |
+| `scripts/install.sh` | From-scratch install: dependencies, Node.js LTS, Hermes, 9Router. |
+| `scripts/setup-tunnel.sh` | Tunnel setup: generate key → create D1 → deploy Pages → set secret. |
+| `docs/arsip-tunnel-gagal.md` | Archive: `cloudflared` & Tailscale failures on the original VM network (in Indonesian). |
 
-## Urutan boot yang benar
+## Correct boot order
 
-Jalankan berurutan (cukup sekali; supervisor + watchdog yang menjaga sisanya):
+Run in order (once is enough; supervisors + watchdog handle the rest):
 
 ```bash
-# 1. 9Router dulu (supervisor detached, auto-restart)
+# 1. 9Router first (detached supervisor, auto-restart)
 bash restart-9router.sh
 
-# 2. Tunnel client (butuh TUNNEL_BASE_URL atau file .tunnel-url)
-export TUNNEL_BASE_URL='https://<project-kamu>.pages.dev'
+# 2. Tunnel client (needs TUNNEL_BASE_URL or a .tunnel-url file)
+export TUNNEL_BASE_URL='https://<your-project>.pages.dev'
 bash restart-tunnel.sh
 
 # 3. Telegram gateway (detached)
 bash start-gateway.sh
 ```
 
-Verifikasi:
+Verify:
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:20128/dashboard  # harus 200/307 (307 = redirect ke login, normal)
-pgrep -f "tunnel-client[.]mjs"   # harus ada PID
-ps aux | grep "[g]ateway.*run"   # harus ada proses gateway
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:20128/dashboard  # expect 200/307 (307 = redirect to login, normal)
+pgrep -f "tunnel-client[.]mjs"   # should print a PID
+ps aux | grep "[g]ateway.*run"   # gateway process should exist
 ```
 
-Lalu buka `https://<project-kamu>.pages.dev` di browser — dashboard 9Router
-harus muncul. Kalau dapat `504 tunnel timeout (client offline?)`, berarti
-tunnel client belum jalan.
+Then open `https://<your-project>.pages.dev` in a browser — the 9Router
+dashboard should appear. If you get `504 tunnel timeout (client offline?)`,
+the tunnel client isn't running yet.
 
-## Watchdog (cron tiap 5 menit)
+## Watchdog (cron every 5 minutes)
 
 ```bash
 crontab -e
-# tambahkan baris ini (sesuaikan path):
-*/5 * * * * /path/ke/Hermuse/watchdog.sh
+# add this line (adjust the path):
+*/5 * * * * /path/to/Hermuse/watchdog.sh
 ```
 
-Watchdog mengecek tiga hal — 9Router (`curl` ke `/dashboard`), tunnel client
-(`pgrep tunnel-client[.]mjs`), gateway Telegram (`gateway.*run`) — dan me-restart
-yang mati via script `restart-*`. Ia diam (tidak menulis log) kalau semua sehat;
-hanya mencatat saat benar-benar me-restart.
+The watchdog checks three things — 9Router (`curl` to `/dashboard`), the
+tunnel client (`pgrep tunnel-client[.]mjs`), the Telegram gateway
+(`gateway.*run`) — and restarts whatever died via the `restart-*` scripts.
+It stays silent (writes no log) when everything is healthy; it only logs when
+it actually restarts something.
 
-> Untuk cron: simpan URL tunnel di file `.tunnel-url` (chmod 600) di folder ini,
-> karena cron tidak mewarisi environment variable interaktif:
-> `echo -n 'https://<project-kamu>.pages.dev' > .tunnel-url && chmod 600 .tunnel-url`
+> For cron: store the tunnel URL in a `.tunnel-url` file (chmod 600) in this
+> folder, since cron doesn't inherit your interactive environment variables:
+> `echo -n 'https://<your-project>.pages.dev' > .tunnel-url && chmod 600 .tunnel-url`
 
-## Watchdog anti-stall gateway (opsional tapi disarankan)
+## Anti-stall gateway watchdog (optional but recommended)
 
-`watchdog.sh` di atas hanya mengecek "proses ada/tidak". Kalau polling
-Telegram macet padahal proses masih hidup, ia lolos dari deteksi.
-`gateway-watch.sh` menutup lubang itu dengan tiga lapis cek:
+The `watchdog.sh` above only checks "process exists or not". If Telegram
+polling stalls while the process is still alive, it slips through.
+`gateway-watch.sh` closes that gap with three layers:
 
-1. PID gateway tidak ada → restart langsung.
-2. Heartbeat event-loop (`$HERMES_HOME/state/gateway.heartbeat`, ditulis
-   otomatis oleh gateway) basi >120 detik → restart langsung.
-3. Heartbeat segar tapi 0 aktivitas adapter Telegram di `gateway.log`
-   selama 15 menit → tandai suspect, restart kalau terkonfirmasi
-   2 run beruntun.
+1. Gateway PID missing → restart immediately.
+2. Event-loop heartbeat (`$HERMES_HOME/state/gateway.heartbeat`, written
+   automatically by the gateway) stale >120s → restart immediately.
+3. Heartbeat fresh but 0 Telegram adapter activity in `gateway.log`
+   for 15 minutes → mark suspect, restart if confirmed on 2 consecutive runs.
 
-Aturan keras: hanya kill kalau tepat 1 kandidat PID (tidak ambigu).
-Tidak menyentuh 9Router sama sekali. Untuk uji coba tanpa aksi nyata:
+Hard rule: only kill when there is exactly 1 candidate PID (no ambiguity).
+Never touches 9Router. Dry-run with no real action:
 `DRY_RUN=1 bash gateway-watch.sh`.
 
 ```bash
 crontab -e
-# tambahkan (selang-seling dengan watchdog.sh juga boleh):
-*/5 * * * * /path/ke/Hermuse/gateway-watch.sh
+# add (can alternate with watchdog.sh):
+*/5 * * * * /path/to/Hermuse/gateway-watch.sh
 ```
 
-## Auto-start setelah reboot
+## Auto-start after reboot
 
-`scripts/start-all.sh` menyalakan semua komponen Hermuse yang mati (9Router,
-tunnel client, Telegram gateway) — idempoten, yang sudah jalan tidak disentuh:
+`scripts/start-all.sh` starts any Hermuse component that is down (9Router,
+tunnel client, Telegram gateway) — idempotent, running components are untouched:
 
 ```bash
-bash /path/ke/Hermuse/scripts/start-all.sh
+bash /path/to/Hermuse/scripts/start-all.sh
 ```
 
-Agar otomatis jalan setiap VPS reboot, contoh untuk VPS Linux normal:
+To run it automatically on every VPS reboot, for a normal Linux VPS:
 
-**Opsi 1 — cron `@reboot`:**
+**Option 1 — cron `@reboot`:**
 
 ```bash
 crontab -e
-# tambahkan:
-@reboot sleep 30 && /path/ke/Hermuse/scripts/start-all.sh >> /path/ke/Hermuse/boot.log 2>&1
+# add:
+@reboot sleep 30 && /path/to/Hermuse/scripts/start-all.sh >> /path/to/Hermuse/boot.log 2>&1
 ```
 
-**Opsi 2 — systemd user unit** (`~/.config/systemd/user/hermuse.service`):
+**Option 2 — systemd user unit** (`~/.config/systemd/user/hermuse.service`):
 
 ```ini
 [Unit]
@@ -173,7 +193,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/path/ke/Hermuse/scripts/start-all.sh
+ExecStart=/path/to/Hermuse/scripts/start-all.sh
 RemainAfterExit=yes
 
 [Install]
@@ -183,56 +203,69 @@ WantedBy=default.target
 ```bash
 systemctl --user daemon-reload
 systemctl --user enable --now hermuse.service
-# agar jalan tanpa login: sudo loginctl enable-linger $USER
+# to run without login: sudo loginctl enable-linger $USER
 ```
 
-(Kedua contoh di atas untuk VPS/jaringan normal dan belum diuji di semua
-distro — sesuaikan dengan sistem masing-masing. Watchdog cron tiap 5 menit
-tetap disarankan sebagai jaring pengaman.)
+(Both examples are for a normal VPS/network and haven't been tested on every
+distro — adapt to your system. The 5-minute watchdog cron is still recommended
+as a safety net.)
 
-## Install dari nol
+## Install from scratch
 
-Belum punya apa-apa? Mulai dari sini:
+Starting with nothing? Begin here:
 
 ```bash
-bash scripts/install.sh        # dependensi + Node.js + Hermes + 9Router + hermes doctor
+bash scripts/install.sh        # dependencies + Node.js + Hermes + 9Router + hermes doctor
 ```
 
-Lalu setup provider model & Telegram gateway (wizard):
+Then the model provider & Telegram gateway wizards:
 
 ```bash
-hermes setup --portal   # login Nous via OAuth (atau: hermes model untuk pilih provider)
-hermes gateway setup    # isi token bot Telegram + allowlist numeric ID
+hermes setup --portal   # log in to Nous via OAuth (or: hermes model to pick a provider)
+hermes gateway setup    # enter your Telegram bot token + numeric-ID allowlist
 ```
 
-Terakhir, setup tunnel Cloudflare-nya:
+Finally, the Cloudflare tunnel setup:
 
 ```bash
-CLOUDFLARE_API_TOKEN='<token>' bash scripts/setup-tunnel.sh <nama-pages-project> <nama-d1>
+CLOUDFLARE_API_TOKEN='<token>' bash scripts/setup-tunnel.sh <pages-project-name> <d1-name>
 ```
 
-(Token Cloudflare dipakai transient saja — tidak disimpan di file mana pun.)
+(The Cloudflare token is used transiently — it is not stored in any file.)
 
-## Yang gagal di jaringan ini (arsip)
+## Security — don't skip
 
-Di jaringan VM asal, dua pendekatan standar **gagal total**:
-
-- **Cloudflare Tunnel (`cloudflared`)** — QUIC/UDP diblokir, TLS ke edge IP di-intercept, proxy menolak CONNECT ke port 7844.
-- **Tailscale** — control plane gagal menembus jaringan (HTTP 400 akibat MITM).
-
-Detail + contoh config yang disanitasi: [docs/arsip-tunnel-gagal.md](docs/arsip-tunnel-gagal.md).
-Di VM/jaringan normal keduanya kemungkinan justru cara termudah.
-
-## Keamanan — jangan dilewatkan
-
-- File berisi secret **selalu `chmod 600`** dan **tidak pernah di-commit**:
+- Secret files are **always `chmod 600`** and **never committed**:
   `.env`, `.tunnel-key`, `.tunnel-url`, `.dashboard-pw`, `wrangler.toml`
-  (sudah tercakup di `.gitignore`).
-- Telegram gateway: **default-deny**. Hanya numeric ID di `TELEGRAM_ALLOWED_USERS`
-  yang bisa memakai bot (`TELEGRAM_BOT_TOKEN` + `TELEGRAM_ALLOWED_USERS` di `.env`).
-- **Ganti password dashboard 9Router dari default** segera setelah install —
-  apalagi URL tunnel-nya publik.
-- Jangan expose port 20128 ke internet tanpa proteksi; 9Router di-bind ke
-  `127.0.0.1` saja.
-- Kalau token bot Telegram bocor: `/revoke` di @BotFather, ganti di `.env`,
-  restart gateway.
+  (all covered by `.gitignore`).
+- Telegram gateway: **default-deny**. Only numeric IDs in
+  `TELEGRAM_ALLOWED_USERS` can use the bot (`TELEGRAM_BOT_TOKEN` +
+  `TELEGRAM_ALLOWED_USERS` live in `.env`).
+- **Change the 9Router dashboard password from the default** right after
+  install — especially since the tunnel URL is public.
+- Don't expose port 20128 to the internet unprotected; 9Router binds to
+  `127.0.0.1` only.
+- If your Telegram bot token leaks: `/revoke` in @BotFather, replace it in
+  `.env`, restart the gateway.
+
+## Notes
+
+<details>
+<summary><strong>What failed on the original network (archive)</strong></summary>
+
+On the original VM network, two standard approaches **failed completely**:
+
+- **Cloudflare Tunnel (`cloudflared`)** — QUIC/UDP blocked, TLS to edge IPs
+  intercepted, proxy refused CONNECT to port 7844.
+- **Tailscale** — control plane couldn't get through the network (HTTP 400
+  from MITM).
+
+Details + sanitized config examples:
+[docs/arsip-tunnel-gagal.md](docs/arsip-tunnel-gagal.md) (in Indonesian).
+On a normal VM/network both are probably the easiest route.
+
+</details>
+
+## License
+
+MIT.
