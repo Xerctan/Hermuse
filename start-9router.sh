@@ -6,13 +6,15 @@
 #   echo -n 'password-baru' > .dashboard-pw && chmod 600 .dashboard-pw
 export PATH="$HOME/.npm-global/bin:$PATH"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/i18n.sh
+. "$SCRIPT_DIR/lib/i18n.sh"
 cd "$SCRIPT_DIR"
 
 DASHBOARD_PW_FILE="${DASHBOARD_PW_FILE:-$SCRIPT_DIR/.dashboard-pw}"
 if [ -f "$DASHBOARD_PW_FILE" ]; then
   export INITIAL_PASSWORD="$(cat "$DASHBOARD_PW_FILE")"
 else
-  echo "PERINGATAN: $DASHBOARD_PW_FILE tidak ada — 9Router jalan dengan password default. Buat file-nya (chmod 600) lalu restart." >&2
+  echo "$(t router_pw_warn "$DASHBOARD_PW_FILE")" >&2
 fi
 
 while true; do

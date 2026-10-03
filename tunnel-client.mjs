@@ -10,6 +10,7 @@
 //                                menahan koneksi), nilai ini BUKAN interval polling
 //                                utama — hanya jeda singkat sebelum poll berikutnya.
 import { readFileSync } from "node:fs";
+import { t } from "./lib/i18n.mjs";
 
 const BASE = (process.env.TUNNEL_BASE_URL || "").replace(/\/$/, "");
 const KEY_FILE = process.env.TUNNEL_KEY_FILE || (process.env.HOME + "/.tunnel-key");
@@ -17,9 +18,9 @@ const LOCAL = process.env.TUNNEL_LOCAL || "http://127.0.0.1:20128";
 const POLL_MS = parseInt(process.env.TUNNEL_POLL_MS || "400", 10);
 
 if (!BASE) {
-  console.error("TUNNEL_BASE_URL belum di-set. Contoh:");
-  console.error("  TUNNEL_BASE_URL=https://<project-kamu>.pages.dev node tunnel-client.mjs");
-  console.error("  (atau simpan URL di file .tunnel-url bila dijalankan via start-pages-tunnel.sh)");
+  console.error(t("tunnel_env_missing"));
+  console.error(t("tunnel_env_example"));
+  console.error(t("tunnel_env_alt"));
   process.exit(1);
 }
 
@@ -27,11 +28,11 @@ let KEY;
 try {
   KEY = readFileSync(KEY_FILE, "utf8").trim();
 } catch {
-  console.error(`Tidak bisa baca key file: ${KEY_FILE} (buat dengan: openssl rand -hex 32 > ${KEY_FILE} && chmod 600 ${KEY_FILE})`);
+  console.error(t("tunnel_key_unreadable", KEY_FILE, KEY_FILE, KEY_FILE));
   process.exit(1);
 }
 if (!KEY) {
-  console.error(`Key kosong di ${KEY_FILE}`);
+  console.error(t("tunnel_key_empty", KEY_FILE));
   process.exit(1);
 }
 

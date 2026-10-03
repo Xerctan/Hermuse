@@ -37,6 +37,8 @@
 # Log: gateway-watch.log di folder ini (hanya aksi/perubahan).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/i18n.sh
+. "$SCRIPT_DIR/lib/i18n.sh"
 D="$SCRIPT_DIR"
 HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
 LOG="$D/gateway-watch.log"
@@ -68,7 +70,7 @@ do_restart() { # $1 = alasan
   elif [ "$n" -eq 1 ]; then
     pid=$pids
   else
-    say "ABORT: $n kandidat PID gateway, tidak kill (ambiguous): $pids"
+    say "ABORT: $(t gw_abort_multi "$n" "$pids")"
     return 1
   fi
   if [ -n "$pid" ]; then
@@ -80,16 +82,16 @@ do_restart() { # $1 = alasan
       for i in $(seq 1 10); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
       if kill -0 "$pid" 2>/dev/null; then kill -9 "$pid" 2>/dev/null; sleep 1; fi
       if kill -0 "$pid" 2>/dev/null; then
-        say "GAGAL: PID $pid tidak bisa di-kill"
+        say "$(t gw_kill_fail "$pid")"
         return 1
       fi
       log "killed exact gateway PID $pid ($reason)"
     fi
   else
-    log "PID gateway tidak ada ($reason)"
+    log "$(t gw_no_pid "$reason")"
   fi
   if [ "$DRY_RUN" = "1" ]; then
-    say "DRY_RUN: would run start-gateway.sh + verifikasi Connected"
+    say "$(t gw_dryrun)"
     return 0
   fi
   local start_str
@@ -106,10 +108,10 @@ do_restart() { # $1 = alasan
   done
   rm -f "$SUSPECT"
   if [ "$ok" = "1" ]; then
-    say "RESTART OK: gateway hidup kembali + Connected to Telegram ($reason)"
+    say "RESTART OK: $(t gw_restart_ok "$reason")"
     return 0
   fi
-  say "RESTART GAGAL: tidak ada 'Connected to Telegram' dalam 60 dtk ($reason)"
+  say "RESTART GAGAL: $(t gw_restart_fail "$reason")"
   return 1
 }
 
@@ -118,7 +120,7 @@ pids=$(gw_pids); npid=$(printf '%s' "$pids" | grep -c .)
 if [ "$npid" -eq 0 ]; then
   do_restart "PID gateway tidak hidup"; exit $?
 elif [ "$npid" -gt 1 ]; then
-  say "ABORT: $npid kandidat PID gateway (ambiguous), tidak diapa-apakan: $pids"; exit 1
+  say "ABORT: $(t gw_abort_ambiguous "$npid" "$pids")"; exit 1
 fi
 PID=$pids
 

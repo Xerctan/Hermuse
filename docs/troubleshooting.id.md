@@ -156,4 +156,4 @@ grep -n "gateway_pids" scripts/doctor.sh   # lihat pola yang dipakai doctor
 
 ---
 
-*English version: [troubleshooting.md](troubleshooting.md)*
+*English version: [troubleshooting.md](troubleshooting.md) · Versi Bahasa Malaysia: [troubleshooting.ms.md](troubleshooting.ms.md)*
