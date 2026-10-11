@@ -10,6 +10,9 @@ Semua perubahan penting di repo ini dicatat di sini, format ala Keep a Changelog
 ## [Unreleased]
 
 ### Ditambahkan
+- `scripts/check-i18n.sh` + workflow CI `.github/workflows/i18n.yml` — setiap key yang dipakai via `t()` wajib punya terjemahan lengkap di ketiga bahasa (en/id/ms); build gagal kalau ada key yang hilang, key yang didefinisikan tapi tak dipakai hanya jadi warning.
+- `scripts/setup-tunnel-cloudflared.sh` — setup Cloudflare Tunnel (cloudflared) untuk JARINGAN NORMAL: install binary bila belum ada, tunnel login/create, tulis config, route DNS CNAME `<hostname>` -> `<tunnel-id>.cfargotunnel.com`, plus instruksi run (foreground + contoh systemd). Bukan untuk sandbox/VM asal (cloudflared diblokir di sana — lihat docs/arsip-tunnel-gagal.md).
+- `docs/key-rotation.md` (+ versi `.id`/`.ms`) — panduan rotasi kredensial trilingual langkah-demi-langkah: rotasi `TUNNEL_KEY` (generate baru → `wrangler pages secret put` → `restart-tunnel.sh`), rotasi password dashboard 9Router (`.dashboard-pw` baru → `restart-9router.sh`), rotasi token bot Telegram (`/revoke` di @BotFather → update `.env` → restart gateway). Setiap bagian mencakup backup sebelum rotasi, perintah copy-paste, verifikasi sesudahnya, dan prosedur rollback.
 - `gateway-watch.sh` — watchdog anti-stall untuk Telegram gateway: 3 lapis deteksi (PID hilang, heartbeat event-loop basi, 0 aktivitas adapter Telegram 15 menit dengan konfirmasi 2 run), aturan keras hanya kill kalau tepat 1 kandidat PID, mode `DRY_RUN=1`, tidak menyentuh 9Router. Section dokumentasi di README.
 - Section "Watchdog anti-stall gateway" di README + `gateway-watch.sh` di tabel layout file.
 - `LICENSE` (MIT) — repo publik akhirnya punya lisensi biar orang berani fork/kontribusi.

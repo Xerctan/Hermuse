@@ -72,6 +72,24 @@ t() {
                 tunnel_env_alt)      fmt="  (or save the URL in a .tunnel-url file when run via start-pages-tunnel.sh)" ;;
                 tunnel_key_unreadable) fmt="Cannot read key file: %s (create with: openssl rand -hex 32 > %s && chmod 600 %s)" ;;
                 tunnel_key_empty)    fmt="Empty key in %s" ;;
+                cf_usage)            fmt="Usage: %s <tunnel-name> <hostname>" ;;
+                cf_installing)       fmt="Installing cloudflared..." ;;
+                cf_have)             fmt="cloudflared already present: %s" ;;
+                cf_install_fail)     fmt="Failed to install cloudflared. Install manually: https://github.com/cloudflare/cloudflared/releases" ;;
+                cf_unsupported_arch) fmt="Architecture %s is not supported." ;;
+                cf_need_login)       fmt="Not logged in to Cloudflare — running 'cloudflared tunnel login'..." ;;
+                cf_login_fail)       fmt="Cloudflare login failed." ;;
+                cf_bad_hostname)     fmt="Invalid hostname: %s (example: 9router.example.com)" ;;
+                cf_creating)         fmt="Creating tunnel '%s'..." ;;
+                cf_exists)           fmt="Tunnel '%s' already exists — reusing it (id %s)." ;;
+                cf_created)          fmt="Tunnel created: %s (id %s)" ;;
+                cf_no_id)            fmt="Failed to determine the tunnel ID." ;;
+                cf_no_cred)          fmt="Credentials file not found: %s" ;;
+                cf_writing_config)   fmt="Writing config to %s..." ;;
+                cf_routing_dns)      fmt="Creating DNS CNAME %s -> %s.cfargotunnel.com..." ;;
+                cf_dns_exists)       fmt="DNS route failed — the record may already exist. Create the CNAME manually if needed." ;;
+                cf_9router_warn)     fmt="9Router is not responding on 127.0.0.1:20128 — make sure it is running before using the tunnel." ;;
+                cf_done)             fmt="Done! Public dashboard: https://%s" ;;
             esac
             ;;
         ms)
@@ -119,6 +137,24 @@ t() {
                 tunnel_env_alt)      fmt="  (atau simpan URL dalam fail .tunnel-url jika dijalankan melalui start-pages-tunnel.sh)" ;;
                 tunnel_key_unreadable) fmt="Tidak dapat membaca fail kunci: %s (cipta dengan: openssl rand -hex 32 > %s && chmod 600 %s)" ;;
                 tunnel_key_empty)    fmt="Kunci kosong di %s" ;;
+                cf_usage)            fmt="Penggunaan: %s <nama-tunnel> <hostname>" ;;
+                cf_installing)       fmt="Memasang cloudflared..." ;;
+                cf_have)             fmt="cloudflared telah dipasang: %s" ;;
+                cf_install_fail)     fmt="Gagal memasang cloudflared. Pasang secara manual: https://github.com/cloudflare/cloudflared/releases" ;;
+                cf_unsupported_arch) fmt="Seni bina %s tidak disokong." ;;
+                cf_need_login)       fmt="Belum log masuk Cloudflare — menjalankan 'cloudflared tunnel login'..." ;;
+                cf_login_fail)       fmt="Log masuk Cloudflare gagal." ;;
+                cf_bad_hostname)     fmt="Hostname tidak sah: %s (contoh: 9router.contoh.com)" ;;
+                cf_creating)         fmt="Mencipta tunnel '%s'..." ;;
+                cf_exists)           fmt="Tunnel '%s' telah wujud — guna yang sedia ada (id %s)." ;;
+                cf_created)          fmt="Tunnel dicipta: %s (id %s)" ;;
+                cf_no_id)            fmt="Gagal mendapatkan tunnel ID." ;;
+                cf_no_cred)          fmt="Fail kredensial tidak ditemui: %s" ;;
+                cf_writing_config)   fmt="Menulis config ke %s..." ;;
+                cf_routing_dns)      fmt="Mencipta DNS CNAME %s -> %s.cfargotunnel.com..." ;;
+                cf_dns_exists)       fmt="DNS route gagal — rekod mungkin telah wujud. Cipta CNAME secara manual jika perlu." ;;
+                cf_9router_warn)     fmt="9Router tidak menjawab di 127.0.0.1:20128 — pastikan ia berjalan sebelum menggunakan tunnel." ;;
+                cf_done)             fmt="Siap! Dashboard awam: https://%s" ;;
             esac
             ;;
         *)
@@ -166,6 +202,24 @@ t() {
                 tunnel_env_alt)      fmt="  (atau simpan URL di file .tunnel-url bila dijalankan via start-pages-tunnel.sh)" ;;
                 tunnel_key_unreadable) fmt="Tidak bisa baca key file: %s (buat dengan: openssl rand -hex 32 > %s && chmod 600 %s)" ;;
                 tunnel_key_empty)    fmt="Key kosong di %s" ;;
+                cf_usage)            fmt="Pakai: %s <nama-tunnel> <hostname>" ;;
+                cf_installing)       fmt="Menginstall cloudflared..." ;;
+                cf_have)             fmt="cloudflared sudah ada: %s" ;;
+                cf_install_fail)     fmt="Gagal menginstall cloudflared. Install manual: https://github.com/cloudflare/cloudflared/releases" ;;
+                cf_unsupported_arch) fmt="Arsitektur %s tidak didukung." ;;
+                cf_need_login)       fmt="Belum login Cloudflare — menjalankan 'cloudflared tunnel login'..." ;;
+                cf_login_fail)       fmt="Login Cloudflare gagal." ;;
+                cf_bad_hostname)     fmt="Hostname tidak valid: %s (contoh: 9router.contoh.com)" ;;
+                cf_creating)         fmt="Membuat tunnel '%s'..." ;;
+                cf_exists)           fmt="Tunnel '%s' sudah ada — pakai yang lama (id %s)." ;;
+                cf_created)          fmt="Tunnel dibuat: %s (id %s)" ;;
+                cf_no_id)            fmt="Gagal mendapatkan tunnel ID." ;;
+                cf_no_cred)          fmt="File kredensial tidak ditemukan: %s" ;;
+                cf_writing_config)    fmt="Menulis config ke %s..." ;;
+                cf_routing_dns)      fmt="Membuat DNS CNAME %s -> %s.cfargotunnel.com..." ;;
+                cf_dns_exists)       fmt="DNS route gagal — record mungkin sudah ada. Buat CNAME manual bila perlu." ;;
+                cf_9router_warn)     fmt="9Router tidak merespons di 127.0.0.1:20128 — pastikan jalan sebelum pakai tunnel." ;;
+                cf_done)             fmt="Selesai! Dashboard publik: https://%s" ;;
             esac
             ;;
     esac

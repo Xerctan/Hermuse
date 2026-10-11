@@ -99,6 +99,7 @@ connections to the edge all failed — see the
 | `tunnel/` | D1 schema (`schema.sql`) + Pages Functions + `wrangler.toml.example`. |
 | `scripts/install.sh` | From-scratch install: dependencies, Node.js LTS, Hermes, 9Router. |
 | `scripts/setup-tunnel.sh` | Tunnel setup: generate key → create D1 → deploy Pages → set secret. |
+| `scripts/setup-tunnel-cloudflared.sh` | Alternative tunnel via `cloudflared` for normal networks (not the sandbox): install binary, login, create tunnel, route DNS, run instructions. |
 | `docs/arsip-tunnel-gagal.md` | Archive: `cloudflared` & Tailscale failures on the original VM network (in Indonesian). |
 
 ## Correct boot order
@@ -245,6 +246,7 @@ CLOUDFLARE_API_TOKEN='<token>' bash scripts/setup-tunnel.sh <pages-project-name>
   `127.0.0.1` only.
 - If your Telegram bot token leaks: `/revoke` in @BotFather, replace it in
   `.env`, restart the gateway.
+- **Rotating credentials?** Follow the step-by-step [credential rotation guide](docs/key-rotation.md) (tunnel key, dashboard password, bot token).
 
 ## Notes
 

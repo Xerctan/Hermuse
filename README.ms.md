@@ -251,6 +251,7 @@ CLOUDFLARE_API_TOKEN='<token>' bash scripts/setup-tunnel.sh <nama-projek-pages> 
   bind pada `127.0.0.1`.
 - Jika token bot Telegram anda bocor: `/revoke` di @BotFather, gantikannya
   dalam `.env`, mulakan semula gateway.
+- **Mahu putar kredensial?** Ikuti [panduan putaran kredensial](docs/key-rotation.ms.md) langkah-demi-langkah (tunnel key, kata laluan dashboard, token bot).
 
 ## Nota
 
